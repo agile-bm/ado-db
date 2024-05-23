@@ -163,7 +163,7 @@ class ADODB_Active_Record
 		$this->foreignName = strtolower(get_class($this)); // CFR: default foreign name
 		if ($db) {
 			$this->_dbat = ADODB_Active_Record::SetDatabaseAdapter($db);
-		} else if (!isset($this->_dbat)) {
+		} elseif (!isset($this->_dbat)) {
 			if (sizeof($_ADODB_ACTIVE_DBS) == 0) {
 				$this->Error(
 					"No database connection set; use ADOdb_Active_Record::SetDatabaseAdapter(\$db)",
@@ -172,7 +172,12 @@ class ADODB_Active_Record
 			}
 			end($_ADODB_ACTIVE_DBS);
 			$this->_dbat = key($_ADODB_ACTIVE_DBS);
-		}
+		} elseif (isset($this->_dbat) && !isset($_ADODB_ACTIVE_DBS[$this->_dbat])) {
+            $DB = \ADODB_Connection_Manager::GetConnection($this->_dbat);
+            if($DB){
+                ADODB_Active_Record::SetDatabaseAdapter($DB, $this->_dbat);
+            }
+        }
 
 		$this->_table = $table;
 		$this->_tableat = $table; # reserved for setting the assoc value to a non-table name, eg. the sql string in future
@@ -340,7 +345,7 @@ class ADODB_Active_Record
 	function LoadRelations($name, $whereOrderBy = '', $offset = -1, $limit = -1)
 	{
 		$extras = array();
-		$table = $this->TableInfo();
+		$table =& $this->TableInfo();
 		if ($limit >= 0) {
 			$extras['limit'] = $limit;
 		}
@@ -662,7 +667,7 @@ class ADODB_Active_Record
 		if (!$db) {
 			return false;
 		}
-		$table = $this->TableInfo();
+		$table =& $this->TableInfo();
 		$where = $this->GenWhere($db, $table);
 		return ($this->Load($where));
 	}
@@ -680,7 +685,7 @@ class ADODB_Active_Record
 
 		$this->_saved = true;
 
-		$table = $this->TableInfo();
+		$table =& $this->TableInfo();
 		if ($ACTIVE_RECORD_SAFETY && sizeof($table->flds) != sizeof($row)) {
 			# <AP>
 			$bad_size = TRUE;
@@ -738,12 +743,7 @@ class ADODB_Active_Record
 	function doquote($db, $val, $t)
 	{
 		switch($t) {
-		/** @noinspection PhpMissingBreakStatementInspection */
-		case 'L':
-			if (strpos($db->databaseType,'postgres') !== false) {
-				return $db->qstr($val);
-			}
-			case 'D':
+		case 'D':
 		/** @noinspection PhpMissingBreakStatementInspection */
 		case 'T':
 			if (empty($val)) {
@@ -761,6 +761,11 @@ class ADODB_Active_Record
 			if (strlen($val) > 0 &&
 				(strncmp($val, "'", 1) != 0 || substr($val, strlen($val) - 1, 1) != "'")
 			) {
+				return $db->qstr($val);
+			}
+		/** @noinspection PhpMissingBreakStatementInspection */
+		case 'L':
+			if (strpos($db->databaseType,'postgres') !== false) {
 				return $db->qstr($val);
 			}
 		default:
@@ -889,7 +894,7 @@ class ADODB_Active_Record
 			return false;
 		}
 		$cnt = 0;
-		$table = $this->TableInfo();
+		$table =& $this->TableInfo();
 
 		$valarr = array();
 		$names = array();
@@ -947,7 +952,7 @@ class ADODB_Active_Record
 		if (!$db) {
 			return false;
 		}
-		$table = $this->TableInfo();
+		$table =& $this->TableInfo();
 
 		$where = $this->GenWhere($db, $table);
 
@@ -986,7 +991,7 @@ class ADODB_Active_Record
 		if (!$db) {
 			return false;
 		}
-		$table = $this->TableInfo();
+		$table =& $this->TableInfo();
 
 		$pkey = $table->keys;
 
@@ -1077,7 +1082,7 @@ class ADODB_Active_Record
 		if (!$db) {
 			return false;
 		}
-		$table = $this->TableInfo();
+		$table =& $this->TableInfo();
 
 		$where = $this->GenWhere($db, $table);
 
@@ -1139,12 +1144,53 @@ class ADODB_Active_Record
 
 	function GetAttributeNames()
 	{
-		$table = $this->TableInfo();
+		$table =& $this->TableInfo();
 		if (!$table) {
 			return false;
 		}
 		return array_keys($table->flds);
 	}
+
+	/**
+    * Function used to retrieve a set of records that represent
+    * specific data page according to page size and page number
+    * @author Mostafa Zakaria
+    * @param int $pageNumber
+    * @param int $pageSize
+    * @param int $pageCount
+    * @param int $rowCount
+    * @param string $where
+    * @param string $orderBy
+    */
+    function GetPage($pageNumber, $pageSize, &$pageCount, &$rowCount, $where='', $orderBy='')
+    {
+        $bindarr = array();
+        $pkeysArr = array();
+        $extra = '';
+        $db = $this->DB();
+        if (!$db || empty($this->_table)){
+            return false;
+        }
+
+        if($where == ''){
+            $where = '1=1';
+        }
+
+        $sql = "SELECT COUNT(*) AS fldCount FROM {$this->_table} WHERE $where";
+        $rslt = $db->GetOne($sql);
+        $rowCount = (int)$rslt;
+        $pageCount = ceil($rslt/$pageSize);
+        $startIndex = $pageSize * ($pageNumber-1);
+        
+        if($orderBy == ''){
+            $where .= " LIMIT $startIndex, $pageSize";
+        }else{
+            $where .= " ORDER BY " . $orderBy . " LIMIT $startIndex, $pageSize";
+        }
+
+        $arr = adodb_GetActiveRecordsClass($db, get_class($this), $this->_table, $where, $bindarr, $pkeysArr, $extra);
+        return $arr;
+    }
 
 	/**
 	 * Quotes the table, column and field names.
@@ -1206,8 +1252,9 @@ function adodb_GetActiveRecordsClass($db, $class, $table, $whereOrderBy, $bindar
 				$rs->MoveNext();
 			}
 		}
-	} else
+	} else {
 		$rows = $db->GetAll($qry,$bindarr);
+	}
 
 	$db->SetFetchMode($save);
 

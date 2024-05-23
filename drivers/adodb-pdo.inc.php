@@ -846,7 +846,7 @@ class ADOPDOStatement {
 
 class ADORecordSet_pdo extends ADORecordSet {
 
-	var $bind = false;
+	var $bind = [];
 	var $databaseType = "pdo";
 	var $dataProvider = "pdo";
 

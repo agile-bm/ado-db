@@ -19,12 +19,12 @@
  * @copyright 2014 Damien Regad, Mark Newnham and the ADOdb community
  */
 
-	include_once('../adodb.inc.php');
-	include_once('../adodb-active-record.inc.php');
+	include_once('adodb.inc.php');
+	include_once('adodb-active-record.inc.php');
 
 	// uncomment the following if you want to test exceptions
 	if (@$_GET['except']) {
-		include('../adodb-exceptions.inc.php');
+		include('adodb-exceptions.inc.php');
 	}
 
 	$db = NewADOConnection('mysql://root@localhost/northwind?persist');

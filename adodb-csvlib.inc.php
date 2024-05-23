@@ -76,7 +76,7 @@ $ADODB_INCLUDED_CSV = 1;
 
 		$savefetch = isset($rs->adodbFetchMode) ? $rs->adodbFetchMode : $rs->fetchMode;
 		$class = $rs->connection->arrayClass;
-		/** @var ADORecordSet $rs2 */
+		/** @var ADORecordSet_array $rs2 */ // updated from ADORecordSet to ADORecordSet_array as it must be type of ADORecordSet_array
 		$rs2 = new $class(ADORecordSet::DUMMY_QUERY_ID);
 		$rs2->timeCreated = $rs->timeCreated; # memcache fix
 		$rs2->sql = $rs->sql;

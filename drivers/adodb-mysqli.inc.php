@@ -1712,6 +1712,9 @@ class ADORecordSet_mysqli extends ADORecordSet{
 
 		$len = -1; // mysql max_length is not accurate
 		switch ($t) {
+			case 'BIT':
+				return 'L';
+				
 			case 'STRING':
 			case 'CHAR':
 			case 'VARCHAR':
@@ -1830,6 +1833,9 @@ class ADORecordSet_array_mysqli extends ADORecordSet_array
 		$len = -1; // mysql max_length is not accurate
 
 		switch ($t) {
+			case 'BIT':
+				return 'L';
+	
 			case 'STRING':
 			case 'CHAR':
 			case 'VARCHAR':

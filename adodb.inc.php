@@ -551,6 +551,7 @@ if (!defined('_ADODB_LAYER')) {
 	var $leftBracket = '[';		/// left square bracked for t-sql styled column names
 	var $rightBracket = ']';	/// right square bracked for t-sql styled column names
 	var $charSet=false;			/// character set to use - only for interbase, postgres and oci8
+	var $datetime = false;      /// used in function metaType in class ADORecordSet added to remove error undefined property
 
 	/** @var string SQL statement to get databases */
 	var $metaDatabasesSQL = '';
@@ -754,6 +755,8 @@ if (!defined('_ADODB_LAYER')) {
 	/** @var string a specified locale. */
 	var $locale;
 
+	abstract function _affectedrows();
+	abstract function _close();
 
 	/**
 	 * Default Constructor.
@@ -1497,7 +1500,7 @@ if (!defined('_ADODB_LAYER')) {
 	function CompleteTrans($autoComplete = true) {
 		if ($this->transOff > 1) {
 			$this->transOff -= 1;
-			return true;
+			return $autoComplete;
 		}
 		$this->raiseErrorFn = $this->_oldRaiseFn;
 
@@ -2707,8 +2710,8 @@ if (!defined('_ADODB_LAYER')) {
 			// ok, set cached object found
 			$rs->connection = $this; // Pablo suggestion
 			if ($this->debug){
-				if ($this->debug == 99) {
-					adodb_backtrace();
+				if ($this->debug === 99) {
+					adodb_backtrace(true, 5);
 				}
 				$inBrowser = isset($_SERVER['HTTP_USER_AGENT']);
 				$ttl = $rs->timeCreated + $secs2cache - time();
@@ -4074,6 +4077,7 @@ class ADORecordSet implements IteratorAggregate {
 	 * public variables
 	 */
 	var $dataProvider = "native";
+	var $databaseType = false;
 
 	/**
 	 * @var string Table name (used in _adodb_getupdatesql() and _adodb_getinsertsql())-
@@ -4093,7 +4097,7 @@ class ADORecordSet implements IteratorAggregate {
 	var $debug = false;
 	var $timeCreated=0;		/// datetime in Unix format rs created -- for cached recordsets
 
-	var $bind = false;		/// used by Fields() to hold array - should be private?
+	var $bind = [];		/// used by Fields() to hold array - should be private?, // Changed to empty array to avoid error in foreach usage
 
 	/** @var ADOConnection The parent connection */
 	var $connection = false;
@@ -4102,6 +4106,7 @@ class ADORecordSet implements IteratorAggregate {
 	 */
 	var $_numOfRows = -1;	/** number of rows, or -1 */
 	var $_numOfFields = -1;	/** number of fields in recordset */
+
 
 	/**
 	 * @var resource|int|false result link identifier
@@ -5981,7 +5986,12 @@ class ADORecordSet implements IteratorAggregate {
 		if (empty($ADODB_INCLUDED_LIB)) {
 			include_once(ADODB_DIR.'/adodb-lib.inc.php');
 		}
-		return _adodb_backtrace($printOrArr,$levels,0,$ishtml);
+		//return _adodb_backtrace($printOrArr,$levels,0,$ishtml);
+        
+        // Updated version by Mostafa Zakaria
+        // adodb_backtrace method should print the backtrace rather than returning it
+        $s = _adodb_backtrace(false,$levels,0,false);
+        ADOConnection::outp($s);
 	}
 
 }

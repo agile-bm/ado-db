@@ -175,7 +175,7 @@ class ADODB_Active_Record
 		// but there was no way to ask it to do that.
 		$forceUpdate = (isset($options['refresh']) && true === $options['refresh']);
 		$this->UpdateActiveTable($pkeyarr, $forceUpdate);
-		if (isset($options['new']) && true === $options['new']) {
+		if (isset($options['new']) && true === $options['new'] && is_object($table)) {
 			$table =& $this->TableInfo();
 			unset($table->_hasMany);
 			unset($table->_belongsTo);
@@ -869,7 +869,7 @@ class ADODB_Active_Record
 			$index++;
 		}
 		if (!$found) {
-			$this->outp_throw("Unable to locate key $myId for $class in Load()", 'Load');
+			$db->outp_throw("Unable to locate key $myId for $class in Load()", 'Load');
 		}
 
 		foreach ($rows as $row) {

@@ -5,8 +5,10 @@ class ADODB_Connection_Manager {
     
     private $fetchMode = 2;
     private $assocCase = 2;
+    private $quoteFieldNames = 'LOWER';
     private $cacheDir = '';
     private $cacheSeconds = '';
+
 
     private $arrDSN = array();
     private $arrConnection = array();
@@ -21,10 +23,11 @@ class ADODB_Connection_Manager {
         $this->cacheDir = $cacheDir;
         $this->cacheSeconds = $cacheSeconds;
 
-        global $ADODB_ASSOC_CASE, $ADODB_FETCH_MODE;
+        global $ADODB_ASSOC_CASE, $ADODB_FETCH_MODE, $ADODB_QUOTE_FIELDNAMES;
 
         $ADODB_FETCH_MODE = $this->fetchMode;
         $ADODB_ASSOC_CASE = $this->assocCase;
+        $ADODB_QUOTE_FIELDNAMES = $this->quoteFieldNames;
         if(!empty($this->cacheDir) && !empty($this->cacheSeconds)){
             if(!file_exists($this->cacheDir)){
                 mkdir($this->cacheDir, 0711, true);

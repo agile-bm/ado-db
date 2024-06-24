@@ -80,12 +80,14 @@ function ADODB_SetDatabaseAdapter($db, $index=false)
 {
 	global $_ADODB_ACTIVE_DBS;
 
-	foreach ($_ADODB_ACTIVE_DBS as $k => $d) {
-		if ($d->db === $db) {
-			return $k;
+	if ($_ADODB_ACTIVE_DBS) {
+		foreach ($_ADODB_ACTIVE_DBS as $k => $d) {
+			if ($d->db === $db) {
+				return $k;
+			}
 		}
 	}
-
+	
 	$obj = new ADODB_Active_DB();
 	$obj->db = $db;
 	$obj->tables = array();
@@ -99,7 +101,7 @@ function ADODB_SetDatabaseAdapter($db, $index=false)
 	return sizeof($_ADODB_ACTIVE_DBS) - 1;
 }
 
-
+#[\AllowDynamicProperties]
 class ADODB_Active_Record
 {
 	static $_changeNames = true; // dynamically pluralize table names

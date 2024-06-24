@@ -1216,17 +1216,23 @@ function _adodb_debug_execute($zthis, $sql, $inputarr)
 	$bindParams = '';
 	if ($inputarr) {
 		$MAXSTRLEN = 64;
+		$paramIndex = 0;
 		foreach ($inputarr as $kk => $vv) {
+			if ($kk%2 == 0) {
+				// type of binded parameter
+				$paramIndex = $kk;
+				continue;
+			}
 			if (is_string($vv) && strlen($vv) > $MAXSTRLEN) {
 				$vv = substr($vv, 0, $MAXSTRLEN) . '...';
 			}
 			if (is_null($vv)) {
-				$bindParams .= "$kk=>null\n";
+				$bindParams .= "$paramIndex:null\n";
 			} else {
 				if (is_array($vv)) {
 					$vv = sprintf("Array Of Values: [%s]", implode(',', $vv));
 				}
-				$bindParams .= "$kk=>'$vv'\n";
+				$bindParams .= "\n$paramIndex:'$vv'";
 			}
 		}
 	}
@@ -1240,14 +1246,14 @@ function _adodb_debug_execute($zthis, $sql, $inputarr)
 		$fmtSql = '<div class="adodb-debug">' . PHP_EOL
 			. '<div class="adodb-debug-sql">' . PHP_EOL
 			. '%1$s<table>' . PHP_EOL
-			. '<tr><th>%2$s</th><td><code>%3$s</code></td></tr>' . PHP_EOL
+			. '<tr><th>(%2$s): </th><td><code>%3$s</code></td></tr>' . PHP_EOL
 			. '%4$s</table>%1$s' . PHP_EOL
 			. '</div>' . PHP_EOL;
 		$hr = $zthis->debug === -1 ? '' : '<hr>';
-		$sqlText = htmlspecialchars($sqlText);
+		// $sqlText = htmlspecialchars($sqlText);
 		if ($bindParams) {
-			$bindParams = '<tr><th>Parameters</th><td><code>'
-				. nl2br(htmlspecialchars($bindParams))
+			$bindParams = '<tr><th>Parameters </th><td><code>'
+				. nl2br($bindParams)
 				. '</code></td></tr>' . PHP_EOL;
 		}
 		if ($queryOutput) {
@@ -1255,16 +1261,17 @@ function _adodb_debug_execute($zthis, $sql, $inputarr)
 		}
 	} else {
 		// CLI output
-		$fmtSql = '%1$s%2$s: %3$s%4$s%1$s';
+		$fmtSql = '%1$s(%2$s): %3$s%4$s%1$s';
 		$hr = $zthis->debug === -1 ? '' : str_repeat('-', 78) . "\n";
 		$sqlText .= "\n";
 	}
 
 	// Always output debug info if statement execution failed
 	if (!$queryId || $zthis->debug !== -99) {
-		printf($fmtSql, $hr, $driverName, $sqlText, $bindParams);
+		// printf($fmtSql, $hr, $driverName, $sqlText, $bindParams);
+		ADOConnection::outp(sprintf($fmtSql, $hr, $driverName, $sqlText, $bindParams), false);
 		if ($queryOutput) {
-			echo $queryOutput . ($isHtml ? '' : "\n");
+			// echo $queryOutput . ($isHtml ? '' : "\n");
 		}
 	}
 
@@ -1273,7 +1280,7 @@ function _adodb_debug_execute($zthis, $sql, $inputarr)
 		_adodb_backtrace(true, 0, 0, $isHtml);
 	}
 	if ($isHtml && $zthis->debug !== -99) {
-		echo '</div>' . PHP_EOL;
+		// echo '</div>' . PHP_EOL;
 	}
 
 	return $queryId;

@@ -5,7 +5,7 @@ class ADODB_Connection_Manager {
     
     private $fetchMode = 2;
     private $assocCase = 2;
-    private $quoteFieldNames = 'LOWER';
+    private $quoteFieldNames = 'NATIVE';
     private $cacheDir = '';
     private $cacheSeconds = '';
 

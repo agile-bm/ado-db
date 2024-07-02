@@ -1218,11 +1218,11 @@ function _adodb_debug_execute($zthis, $sql, $inputarr)
 		$MAXSTRLEN = 64;
 		$paramIndex = 0;
 		foreach ($inputarr as $kk => $vv) {
-			if ($kk%2 == 0) {
+			if ($kk == 0) {
 				// type of binded parameter
-				$paramIndex = $kk;
 				continue;
 			}
+			$paramIndex = $kk-1;
 			if (is_string($vv) && strlen($vv) > $MAXSTRLEN) {
 				$vv = substr($vv, 0, $MAXSTRLEN) . '...';
 			}

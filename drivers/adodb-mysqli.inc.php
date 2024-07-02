@@ -1255,6 +1255,9 @@ class ADODB_mysqli extends ADOConnection {
 
 				// Did we throw an error?
 				if (!$ret) {
+					if ($this->debug) {
+						ADOConnection::outp("Query: " . $sql . " failed. " . $this->ErrorMsg());
+					}
 					return false;
 				}
 			}
@@ -1295,7 +1298,7 @@ class ADODB_mysqli extends ADOConnection {
 		}
 
 		if ($this->debug) {
-			ADOConnection::outp("Query: " . $sql . " failed. " . $this->errorMsg());
+			ADOConnection::outp("Query: " . $sql . " failed. " . $this->ErrorMsg());
 		}
 		return false;
 	}

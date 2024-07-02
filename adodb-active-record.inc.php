@@ -1041,19 +1041,13 @@ class ADODB_Active_Record
 				break;
 		}
 
-		$newArr = array();
-		foreach ($arr as $k => $v)
-			$newArr[$this->nameQuoter($db, $k)] = $v;
-		$arr = $newArr;
+
 
 		$newPkey = array();
 		foreach ($pkey as $k => $v)
 			$newPkey[$k] = $this->nameQuoter($db, $v);
 		$pkey = $newPkey;
-
-		$tableName = $this->nameQuoter($db, $this->_table);
-
-		$ok = $db->Replace($tableName, $arr, $pkey);
+		$ok = $db->Replace($this->_table, $arr, $pkey);
 		if ($ok) {
 			$this->_saved = true; // 1= update 2=insert
 			if ($ok == 2) {

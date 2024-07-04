@@ -1041,12 +1041,6 @@ class ADODB_Active_Record
 				break;
 		}
 
-
-
-		$newPkey = array();
-		foreach ($pkey as $k => $v)
-			$newPkey[$k] = $this->nameQuoter($db, $v);
-		$pkey = $newPkey;
 		$ok = $db->Replace($this->_table, $arr, $pkey);
 		if ($ok) {
 			$this->_saved = true; // 1= update 2=insert
